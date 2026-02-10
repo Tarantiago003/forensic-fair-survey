@@ -166,8 +166,6 @@ const questions = [
 // ============================================
 // VALIDATION FUNCTIONS
 // ============================================
-
-// Validate Philippine Mobile Number
 function isValidPhoneNumber(phone) {
     const cleaned = phone.replace(/[\s-]/g, '');
     const patterns = [
@@ -178,21 +176,17 @@ function isValidPhoneNumber(phone) {
     return patterns.some(pattern => pattern.test(cleaned));
 }
 
-// Validate Email
 function isValidEmail(email) {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailPattern.test(email);
 }
 
-// Show error message
 function showError(inputId, message) {
     const input = document.getElementById(inputId);
     input.classList.add('invalid');
     
     const existingError = input.parentElement.querySelector('.error-text');
-    if (existingError) {
-        existingError.remove();
-    }
+    if (existingError) existingError.remove();
     
     const errorSpan = document.createElement('small');
     errorSpan.className = 'error-text';
@@ -200,29 +194,22 @@ function showError(inputId, message) {
     input.parentElement.appendChild(errorSpan);
 }
 
-// Clear error message
 function clearError(inputId) {
     const input = document.getElementById(inputId);
     input.classList.remove('invalid');
     
     const existingError = input.parentElement.querySelector('.error-text');
-    if (existingError) {
-        existingError.remove();
-    }
+    if (existingError) existingError.remove();
 }
 
 // ============================================
 // PAGE NAVIGATION
 // ============================================
 function goToPage(pageId) {
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
     
-    if (pageId === 'quizPage') {
-        loadQuestion();
-    }
+    if (pageId === 'quizPage') loadQuestion();
 }
 
 // ============================================
@@ -271,9 +258,7 @@ document.getElementById('intakeForm').addEventListener('submit', function(e) {
         isValid = false;
     }
     
-    if (isValid) {
-        goToPage('quizPage');
-    }
+    if (isValid) goToPage('quizPage');
 });
 
 // Real-time validation
@@ -365,7 +350,6 @@ function calculateResult() {
 // GOOGLE SHEETS SUBMISSION
 // ============================================
 async function submitToGoogleSheets(finalPath) {
-    // IMPORTANT: Replace with your Google Apps Script Web App URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRNSAO7jLfUN1uJosh_oLQYj_FGU8ACRcn2oU7KiVevqUsJPNSqa3ZcnP2Ewtto2f8ew/exec';
     
     const data = {
@@ -384,48 +368,39 @@ async function submitToGoogleSheets(finalPath) {
         await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        console.log('✅ Data submitted successfully:', data);
+        console.log('✅ Data submitted:', data);
     } catch (error) {
         console.error('❌ Submission error:', error);
     }
 }
 
 // ============================================
-// TRENDS PAGE - FETCH REAL DATA FROM GOOGLE SHEETS
+// TRENDS PAGE
 // ============================================
 async function loadTrends() {
-    // IMPORTANT: Use the SAME Google Apps Script URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRNSAO7jLfUN1uJosh_oLQYj_FGU8ACRcn2oU7KiVevqUsJPNSqa3ZcnP2Ewtto2f8ew/exec';
     
     const trendsContent = document.getElementById('trendsContent');
-    trendsContent.innerHTML = '<p style="text-align: center; color: #ffc107; padding: 20px;">📊 Loading data...</p>';
+    trendsContent.innerHTML = '<p style="text-align:center;color:#ffc107;padding:20px;">📊 Loading data...</p>';
     
     try {
         const response = await fetch(SCRIPT_URL);
         const pathData = await response.json();
         
-        trendsContent.innerHTML = '';
+        if (pathData.error) throw new Error(pathData.error);
         
-        // Check if there's an error
-        if (pathData.error) {
-            throw new Error(pathData.error);
-        }
-        
-        // Sort by percentage (highest first)
         const sortedPaths = Object.entries(pathData).sort((a, b) => b[1] - a[1]);
         
-        // If no data yet
+        trendsContent.innerHTML = '';
+        
         if (sortedPaths.length === 0) {
-            trendsContent.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No data yet. Complete the quiz to see results!</p>';
+            trendsContent.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">No data yet. Complete the quiz!</p>';
             return;
         }
         
-        // Display each path with its percentage
         sortedPaths.forEach(([path, percent]) => {
             const trendBar = document.createElement('div');
             trendBar.className = 'trend-bar';
@@ -442,8 +417,8 @@ async function loadTrends() {
         });
         
     } catch (error) {
-        console.error('Error loading trends:', error);
-        trendsContent.innerHTML = '<p style="text-align: center; color: #f44336; padding: 20px;">⚠️ Failed to load data. Please try again later.</p>';
+        console.error('❌ Error:', error);
+        trendsContent.innerHTML = '<p style="text-align:center;color:#f44336;padding:20px;">⚠️ Failed to load data</p>';
     }
 }
 
@@ -469,5 +444,4 @@ function restartGame() {
 // ============================================
 window.onload = function() {
     console.log('🕵️ Forensic Path Discovery Game Loaded');
-    console.log('✅ Ready to investigate!');
 };
