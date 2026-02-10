@@ -378,11 +378,10 @@ function calculateResult() {
 // GOOGLE SHEETS SUBMISSION
 // ============================================
 async function submitToGoogleSheets(finalPath) {
-    // IMPORTANT: Replace with your actual Google Apps Script URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRNSAO7jLfUN1uJosh_oLQYj_FGU8ACRcn2oU7KiVevqUsJPNSqa3ZcnP2Ewtto2f8ew/exec';
     
     const data = {
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString().split('T')[0],  // ✅ DATE ONLY
         fullName: formData.fullName,
         contactNumber: formData.contactNumber,
         email: formData.email,
