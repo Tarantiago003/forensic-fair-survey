@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVGFC - Forensic Path Discovery - Mini Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e4e4e4;
+            overflow-x: hidden;
+        }
+
+        .forensic-app {
+            min-height: 100vh;
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px),
+                linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 50%, #16213e 100%);
+            padding: 20px;
+        }
+
+        .page {
+            max-width: 480px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo-img {
+            max-width: 120px;
+            max-height: 80px;
+            object-fit: contain;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .case-header {
+            background: rgba(255,193,7,0.1);
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-text {
+            color: #ffc107;
+        }
+
+        /* LANDING PAGE */
+        .landing-page {
+            text-align: center;
+        }
+
+        /* Banner Container */
+          .banner-container {
+              width: 100%;
+              margin-bottom: 20px;
+              display: flex;
+              justify-content: center;
+          }
+
+          .banner-img {
+              width: 100%;
+              max-width: 600px;
+              height: auto;
+              border-radius: 8px;
+              box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+              border: 2px solid rgba(255,193,7,0.3);
+          }
+
+          /* Mobile responsive */
+          @media (max-width: 480px) {
+              .banner-img {
+                  max-width: 100%;
+                  border-radius: 4px;
+              }
+          }
+
+        .logo-placeholder {
+            background: rgba(255,255,255,0.1);
+            border: 2px dashed rgba(255,193,7,0.3);
+            padding: 20px 30px;
+            font-size: 11px;
+            color: #999;
+            flex: 1;
+        }
+
+        .confidential-stamp {
+            display: inline-block;
+            border: 3px solid #c62828;
+            color: #c62828;
+            padding: 8px 25px;
+            font-weight: bold;
+            transform: rotate(-5deg);
+            font-size: 14px;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+
+        .content-card {
+            background: linear-gradient(to bottom, #f5f5dc 0%, #e8e8d0 100%);
+            color: #1a1a1a;
+            padding: 40px 30px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.02) 10px,
+                rgba(0,0,0,0.02) 20px
+            );
+            pointer-events: none;
+        }
+
+        .main-title {
+            font-size: 32px;
+            line-height: 1.2;
+            margin: 20px 0;
+            font-weight: 900;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            margin-bottom: 30px;
+            opacity: 0.7;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: #1a1a1a;
+            border: none;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255,193,7,0.4);
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,193,7,0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .fingerprint-graphic {
+            font-size: 80px;
+            margin-top: 30px;
+            opacity: 0.3;
+        }
+
+        /* FORM PAGE */
+        .form-page {
+            max-width: 500px;
+        }
+
+        .form-container {
+            background: rgba(30,30,50,0.6);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,193,7,0.2);
+        }
+
+        .evidence-tag {
+            background: #c62828;
+            color: white;
+            padding: 6px 15px;
+            display: inline-block;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            transform: rotate(-2deg);
+        }
+
+        .evidence-yellow {
+            background: #ffc107;
+            color: #1a1a1a;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #ffc107;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,193,7,0.3);
+            color: white;
+            font-size: 14px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #ffc107;
+            box-shadow: 0 0 10px rgba(255,193,7,0.3);
+        }
+
+        .privacy-notice {
+            background: rgba(255,193,7,0.1);
+            padding: 15px;
+            border-left: 3px solid #ffc107;
+            margin: 20px 0;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        /* QUIZ PAGE */
+        .quiz-container {
+            background: rgba(30,30,50,0.6);
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,193,7,0.2);
+        }
+
+        .question-box {
+            background: rgba(0,0,0,0.4);
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border: 1px solid rgba(255,193,7,0.2);
+        }
+
+        .scenario {
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: #1a1a1a;
+            border: none;
+            padding: 20px 15px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(255,193,7,0.3);
+            font-family: 'Courier New', monospace;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255,193,7,0.5);
+        }
+
+        .option-btn:active {
+            transform: translateY(0);
+        }
+
+        .option-text {
+            font-size: 11px;
+            margin-top: 8px;
+            font-weight: normal;
+            line-height: 1.3;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.1);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 25px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .caution-stripe {
+            height: 30px;
+            background: repeating-linear-gradient(
+                45deg,
+                #ffc107,
+                #ffc107 20px,
+                #1a1a1a 20px,
+                #1a1a1a 40px
+            );
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+
+        /* RESULT PAGE */
+        .result-container {
+            background: rgba(30,30,50,0.8);
+            padding: 40px 30px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #ffc107;
+        }
+
+        .badge-icon {
+            font-size: 100px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(255,193,7,0.5));
+        }
+
+        .classification {
+            color: #ff6b6b;
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .path-name {
+            display: block;
+            color: #ffc107;
+            font-size: 22px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .flavor-text {
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+
+        /* TRENDS PAGE */
+        .trends-container {
+            background: rgba(30,30,50,0.8);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,193,7,0.2);
+        }
+
+        .trends-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ffc107;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        .trend-bar {
+            margin-bottom: 25px;
+        }
+
+        .trend-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #ffc107;
+        }
+
+        .bar-container {
+            background: rgba(255,255,255,0.1);
+            height: 30px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            background: linear-gradient(90deg, #00d9ff 0%, #0066ff 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .percent {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid #ffc107;
+            padding: 14px 28px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 30px;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,193,7,0.2);
+        }
+
+        @media (max-width: 480px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-title {
+                font-size: 28px;
+            }
+
+            .logo-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+      <div class="forensic-app" id="app">
+          <!-- BANNER - VISIBLE ON ALL PAGES -->
+          <div class="banner-container">
+              <img src="updatedbanner.png" alt="MVGFC Banner" class="banner-img">
+          </div>
+
+        <!-- LANDING PAGE -->
+        <div class="page landing-page active" id="landingPage">
+                
+            <div class="confidential-stamp">CONFIDENTIAL</div>
+            
+            <div class="content-card">
+                <div class="case-header">THE DOSSIER / 06 FORENSIC PATH</div>
+                
+                <h1 class="main-title">DISCOVER YOUR<br/>FORENSIC PATH</h1>
+                <p class="subtitle">A mini forensic career discovery quiz</p>
+                
+                <button class="btn-primary" onclick="goToPage('formPage')">
+                    <span>👁️</span>
+                    BEGIN INVESTIGATION
+                </button>
+                
+                <div class="fingerprint-graphic">🖐️</div>
+            </div>
+        </div>
+
+        <!-- FORM PAGE -->
+        <div class="page form-page" id="formPage">
+            <div class="case-header">
+                <span>INTAKE REPORT / CASE LOG</span>
+            </div>
+            
+            <div class="form-container">
+                <div class="evidence-tag">TOP SECRET</div>
+                
+                <form id="intakeForm">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="tel" id="contactNumber" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Grade Level</label>
+                        <input type="text" id="gradeLevel" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>School</label>
+                        <input type="text" id="school" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Guardian Name</label>
+                        <input type="text" id="guardianName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Guardian Contact Number</label>
+                        <input type="tel" id="guardianContactNumber" required>
+                    </div>
+                    
+                    <div class="privacy-notice">
+                        <small>All information collected will be used solely for academic event registration, career guidance, and institutional communication purposes in accordance with the Data Privacy Act of 2012.</small>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">
+                        PROCEED TO INVESTIGATION
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- QUIZ PAGE -->
+        <div class="page quiz-page" id="quizPage">
+            <div class="case-header">
+                <span>← QUIZ INTERROGATION</span>
+                <span class="progress-text" id="progressText">CASE PROGRESS: 1 / 12</span>
+            </div>
+            
+            <div class="quiz-container">
+                <div class="evidence-tag evidence-yellow" id="caseNumber"></div>
+                
+                <div class="question-box">
+                    <p class="scenario" id="questionText"></p>
+                </div>
+                
+                <div class="options-grid" id="optionsGrid"></div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                
+                <div class="caution-stripe"></div>
+            </div>
+        </div>
+
+        <!-- RESULT PAGE -->
+        <div class="page result-page" id="resultPage">
+            <div class="case-header">
+                <span>≡ THE CAREER BADGE</span>
+                <span>🔍</span>
+            </div>
+            
+            <div class="result-container">
+                <div class="badge-icon">🛡️</div>
+                
+                <div class="classification">
+                    CLASSIFICATION:<br/>
+                    <span class="path-name" id="resultTitle"></span>
+                </div>
+                
+                <p class="flavor-text" id="resultFlavor"></p>
+                
+                <button class="btn-primary" onclick="goToPage('trendsPage')">
+                    VIEW FORENSIC TRENDS
+                </button>
+            </div>
+        </div>
+
+        <!-- TRENDS PAGE -->
+        <div class="page trends-page" id="trendsPage">
+            <div class="case-header">
+                <span>FORENSIC PATH DISTRIBUTION</span>
+            </div>
+            
+            <div class="trends-container">
+                <h2 class="trends-title">CAREER ANALYTICS DASHBOARD</h2>
+                
+                <div id="trendsContent"></div>
+                
+                <button class="btn-secondary" onclick="restartGame()">
+                    RESTART INVESTIGATION
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        let currentQuestion = 0;
+        let quizAnswers = {};
+        let formData = {};
+        let finalResult = null;
+
+        // ============================================
+        // FORENSIC PATHS DATA
+        // ============================================
+        const forensicPaths = {
+            investigator: { title: '🏆 Case Master Investigator', flavor: 'May mata ka sa detalye at utak na pang-solve ng kaso.' },
+            patrolman: { title: '🏆 Frontline Law Enforcer', flavor: 'Ikaw ang unang rumesponde para sa kaayusan at seguridad.' },
+            emergency: { title: '🏆 Critical Response Specialist', flavor: 'Kalma ka kahit chaos na — lives come first for you.' },
+            fire: { title: '🏆 Fire & Disaster Commander', flavor: 'Hindi ka umaatras kahit delikado ang sitwasyon.' },
+            jail: { title: '🏆 Detention Security Officer', flavor: 'Order, control, at seguridad ang natural mong strength.' },
+            correction: { title: '🏆 Rehabilitation & Discipline Officer', flavor: 'Naniniwala ka sa pagbabago at tamang disiplina.' },
+            fingerprint: { title: '🏆 Latent Print Specialist', flavor: 'Isang marka lang, kaya mong ikonek ang buong kaso.' },
+            photographer: { title: '🏆 Forensic Visual Analyst', flavor: 'Ang lens mo ang nagsasalita para sa ebidensya.' },
+            polygraph: { title: '🏆 Truth Verification Analyst', flavor: 'Alam mo kung kailan may itinatago ang isang tao.' },
+            chemist: { title: '🏆 Forensic Laboratory Analyst', flavor: 'Science ang sandata mo sa paghahanap ng katotohanan.' },
+            firearm: { title: '🏆 Ballistics & Firearms Specialist', flavor: 'Bawat bala may kwento — at kaya mo itong basahin.' },
+            document: { title: '🏆 Document Authenticity Expert', flavor: 'Sulat at pirma? Hindi ka madaling malinlang.' },
+            pdea: { title: '🏆 Anti-Narcotics Intelligence Operative', flavor: 'Tahimik kang gumagalaw pero malaki ang impact.' }
+        };
+
+        // ============================================
+        // QUIZ QUESTIONS (12 Scenario-based, Taglish)
+        // ============================================
+        const questions = [
+            {
+                id: 1,
+                case: 'CASE NO: R3/06',
+                scenario: 'May nakita kang suspicious package sa isang public place. Ano ang unang gagawin mo?',
+                options: [
+                    { text: 'Secure the area at tawagan ang bomb squad', path: 'emergency' },
+                    { text: 'I-inspect ang package ng maingat', path: 'investigator' },
+                    { text: 'Mag-coordinate sa local police', path: 'patrolman' },
+                    { text: 'I-document lahat ng detalye gamit camera', path: 'photographer' }
+                ]
+            },
+            {
+                id: 2,
+                case: 'CASE NO: F7/12',
+                scenario: 'May sunog na naganap sa isang building. Ikaw ang first responder. Priority mo ay?',
+                options: [
+                    { text: 'Rescue ng mga trapped victims', path: 'fire' },
+                    { text: 'Secure ang crime scene para sa investigation', path: 'investigator' },
+                    { text: 'Provide emergency medical assistance', path: 'emergency' },
+                    { text: 'Control the crowd at maintain order', path: 'patrolman' }
+                ]
+            },
+            {
+                id: 3,
+                case: 'CASE NO: L4/23',
+                scenario: 'Nakita mo ang isang suspect na nag-lie during interrogation. Ano ang approach mo?',
+                options: [
+                    { text: 'Use polygraph test para ma-verify ang statement', path: 'polygraph' },
+                    { text: 'Cross-check ang statement sa evidence', path: 'investigator' },
+                    { text: 'Intimidate para mag-confess', path: 'jail' },
+                    { text: 'Build rapport at hanapin ang inconsistencies', path: 'pdea' }
+                ]
+            },
+            {
+                id: 4,
+                case: 'CASE NO: C9/41',
+                scenario: 'May nakuha kang mysterious white powder sa crime scene. Next step mo?',
+                options: [
+                    { text: 'I-test sa laboratory para malaman ang composition', path: 'chemist' },
+                    { text: 'I-document at i-photograph ang evidence', path: 'photographer' },
+                    { text: 'I-report sa PDEA kung drug-related', path: 'pdea' },
+                    { text: 'Secure at i-seal ang evidence properly', path: 'investigator' }
+                ]
+            },
+            {
+                id: 5,
+                case: 'CASE NO: P2/58',
+                scenario: 'Patrolling ka sa community when you witness a minor crime. Ano ang gagawin mo?',
+                options: [
+                    { text: 'Immediate arrest at bring to station', path: 'patrolman' },
+                    { text: 'Issue warning at i-document ang incident', path: 'patrolman' },
+                    { text: 'Investigate muna kung may mas malaking involvement', path: 'investigator' },
+                    { text: 'Counsel at educate ang suspect', path: 'correction' }
+                ]
+            },
+            {
+                id: 6,
+                case: 'CASE NO: D8/67',
+                scenario: 'May nag-submit ng forged document sa government office. Paano mo i-verify?',
+                options: [
+                    { text: 'Examine signatures, paper quality, at printing marks', path: 'document' },
+                    { text: 'Compare sa original documents sa database', path: 'investigator' },
+                    { text: 'Interview ang nag-submit ng document', path: 'polygraph' },
+                    { text: 'Use chemical tests sa paper', path: 'chemist' }
+                ]
+            },
+            {
+                id: 7,
+                case: 'CASE NO: B5/89',
+                scenario: 'May shooting incident. May recovered bullet. Ano ang focus mo?',
+                options: [
+                    { text: 'Analyze bullet trajectory at firearm type', path: 'firearm' },
+                    { text: 'Photograph ang bullet position at scene', path: 'photographer' },
+                    { text: 'Secure witnesses at gather statements', path: 'investigator' },
+                    { text: 'Provide medical aid sa victims', path: 'emergency' }
+                ]
+            },
+            {
+                id: 8,
+                case: 'CASE NO: J3/94',
+                scenario: 'Ikaw ang in-charge sa detention facility. May riot na naganap. Priority mo?',
+                options: [
+                    { text: 'Restore order using force if necessary', path: 'jail' },
+                    { text: 'Negotiate with inmates para matapos ang riot', path: 'correction' },
+                    { text: 'Call for backup at secure the perimeter', path: 'patrolman' },
+                    { text: 'Evacuate vulnerable inmates', path: 'emergency' }
+                ]
+            },
+            {
+                id: 9,
+                case: 'CASE NO: M1/15',
+                scenario: 'May latent fingerprints sa crime scene. Paano mo i-process?',
+                options: [
+                    { text: 'Lift prints using proper techniques at analyze', path: 'fingerprint' },
+                    { text: 'Photograph first bago i-lift', path: 'photographer' },
+                    { text: 'Compare directly sa suspect database', path: 'investigator' },
+                    { text: 'Use chemical reagents para enhance', path: 'chemist' }
+                ]
+            },
+            {
+                id: 10,
+                case: 'CASE NO: N7/28',
+                scenario: 'Intelligence report about drug syndicate operations. Ano ang approach mo?',
+                options: [
+                    { text: 'Conduct surveillance at gather more intel', path: 'pdea' },
+                    { text: 'Immediate raid based sa report', path: 'patrolman' },
+                    { text: 'Build case file muna bago mag-operate', path: 'investigator' },
+                    { text: 'Infiltrate the group undercover', path: 'pdea' }
+                ]
+            },
+            {
+                id: 11,
+                case: 'CASE NO: R6/33',
+                scenario: 'May parolee na lumalabag sa conditions. Paano mo i-handle?',
+                options: [
+                    { text: 'Immediate revoke parole at ibalik sa facility', path: 'jail' },
+                    { text: 'Counsel at give second chance with monitoring', path: 'correction' },
+                    { text: 'Report sa court at follow protocol', path: 'investigator' },
+                    { text: 'Coordinate with social workers', path: 'correction' }
+                ]
+            },
+            {
+                id: 12,
+                case: 'CASE NO: E4/77',
+                scenario: 'Major emergency - multiple casualties. You\'re the incident commander. First priority?',
+                options: [
+                    { text: 'Triage at prioritize critical patients', path: 'emergency' },
+                    { text: 'Secure the scene para safe ang responders', path: 'fire' },
+                    { text: 'Coordinate all responding units', path: 'emergency' },
+                    { text: 'Document everything para sa investigation', path: 'investigator' }
+                ]
+            }
+        ];
+
+        // ============================================
+        // PAGE NAVIGATION
+        // ============================================
+        function goToPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            if (pageId === 'quizPage') {
+                loadQuestion();
+            }
+        }
+
+        // ============================================
+        // FORM SUBMISSION
+        // ============================================
+        document.getElementById('intakeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Collect form data
+            formData = {
+                fullName: document.getElementById('fullName').value,
+                contactNumber: document.getElementById('contactNumber').value,
+                email: document.getElementById('email').value,
+                gradeLevel: document.getElementById('gradeLevel').value,
+                school: document.getElementById('school').value,
+                guardianName: document.getElementById('guardianName').value,
+                guardianContactNumber: document.getElementById('guardianContactNumber').value
+            };
+            
+            // Validate all fields are filled
+            const allFilled = Object.values(formData).every(val => val.trim() !== '');
+            
+            if (allFilled) {
+                goToPage('quizPage');
+            } else {
+                alert('Please complete all fields');
+            }
+        });
+
+        // ============================================
+        // QUIZ LOGIC
+        // ============================================
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            
+            // Update case number
+            document.getElementById('caseNumber').textContent = q.case;
+            
+            // Update question text
+            document.getElementById('questionText').textContent = q.scenario;
+            
+            // Update progress
+            document.getElementById('progressText').textContent = `CASE PROGRESS: ${currentQuestion + 1} / 12`;
+            document.getElementById('progressFill').style.width = `${((currentQuestion + 1) / 12) * 100}%`;
+            
+            // Render options
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `
+                    EXHIBIT ${String.fromCharCode(65 + idx)}
+                    <div class="option-text">${opt.text}</div>
+                `;
+                btn.onclick = () => selectAnswer(opt.path);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(path) {
+            // Store answer
+            quizAnswers[questions[currentQuestion].id] = path;
+            
+            // Move to next question or show result
+            if (currentQuestion < 11) {
+                currentQuestion++;
+                setTimeout(() => loadQuestion(), 300);
+            } else {
+                setTimeout(() => calculateResult(), 300);
+            }
+        }
+
+        // ============================================
+        // CALCULATE RESULT
+        // ============================================
+        function calculateResult() {
+            // Count scores for each path
+            const scores = {};
+            Object.values(quizAnswers).forEach(path => {
+                scores[path] = (scores[path] || 0) + 1;
+            });
+            
+            // Find the path with highest score
+            const winner = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+            finalResult = winner;
+            
+            // Display result
+            const resultPath = forensicPaths[winner];
+            document.getElementById('resultTitle').textContent = resultPath.title;
+            document.getElementById('resultFlavor').textContent = resultPath.flavor;
+            
+            // Submit to Google Sheets
+            submitToGoogleSheets(winner);
+            
+            // Show result page
+            goToPage('resultPage');
+        }
+
+        // ============================================
+        // GOOGLE SHEETS SUBMISSION
+        // ============================================
+        async function submitToGoogleSheets(finalPath) {
+            // Replace this URL with your Google Apps Script Web App URL
+            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRNSAO7jLfUN1uJosh_oLQYj_FGU8ACRcn2oU7KiVevqUsJPNSqa3ZcnP2Ewtto2f8ew/exec';
+            
+            const data = {
+                timestamp: new Date().toISOString(),
+                fullName: formData.fullName,
+                contactNumber: formData.contactNumber,
+                email: formData.email,
+                gradeLevel: formData.gradeLevel,
+                school: formData.school,
+                guardianName: formData.guardianName,
+                guardianContactNumber: formData.guardianContactNumber,
+                forensicPath: forensicPaths[finalPath].title
+            };
+            
+            try {
+                // Uncomment below lines when you have your Google Apps Script URL
+                
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                console.log('Data to submit:', data);
+            } catch (error) {
+                console.error('Submission error:', error);
+            }
+        }
+
+        // ============================================
+        // TRENDS PAGE (Mock Data)
+        // ============================================
+        function loadTrends() {
+            // Mock data - in production, fetch from Google Sheets
+            const mockTrends = {
+                'Crime Scene Investigation': 38,
+                'Law Enforcement': 28,
+                'Emergency Response': 15,
+                'Digital Forensics': 19
+            };
+            
+            const trendsContent = document.getElementById('trendsContent');
+            trendsContent.innerHTML = '';
+            
+            Object.entries(mockTrends).forEach(([path, percent]) => {
+                const trendBar = document.createElement('div');
+                trendBar.className = 'trend-bar';
+                trendBar.innerHTML = `
+                    <div class="trend-label">
+                        <span class="icon">📊</span> ${path.toUpperCase()}
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${percent}%"></div>
+                        <span class="percent">${percent}%</span>
+                    </div>
+                `;
+                trendsContent.appendChild(trendBar);
+            });
+        }
+
+        // Load trends when page is shown
+        document.querySelector('[onclick="goToPage(\'trendsPage\')"]').addEventListener('click', loadTrends);
+
+        // ============================================
+        // RESTART GAME
+        // ============================================
+        function restartGame() {
+            currentQuestion = 0;
+            quizAnswers = {};
+            formData = {};
+            finalResult = null;
+            
+            // Reset form
+            document.getElementById('intakeForm').reset();
+            
+            // Go back to landing
+            goToPage('landingPage');
+        }
+
+        // ============================================
+        // INITIALIZE
+        // ============================================
+        window.onload = function() {
+            console.log('Forensic Path Discovery Game Loaded');
+            console.log('Ready to investigate!');
+        };
+    </script>
+</body>
+</html>
