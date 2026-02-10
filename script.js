@@ -168,18 +168,13 @@ const questions = [
 // ============================================
 
 // Validate Philippine Mobile Number
-// Accepts: 09XXXXXXXXX, 639XXXXXXXXX, +639XXXXXXXXX, or with dashes/spaces
 function isValidPhoneNumber(phone) {
-    // Remove all spaces and dashes
     const cleaned = phone.replace(/[\s-]/g, '');
-    
-    // Check for various valid formats
     const patterns = [
-        /^09\d{9}$/,           // 09XXXXXXXXX
-        /^639\d{9}$/,          // 639XXXXXXXXX
-        /^\+639\d{9}$/         // +639XXXXXXXXX
+        /^09\d{9}$/,
+        /^639\d{9}$/,
+        /^\+639\d{9}$/
     ];
-    
     return patterns.some(pattern => pattern.test(cleaned));
 }
 
@@ -194,13 +189,11 @@ function showError(inputId, message) {
     const input = document.getElementById(inputId);
     input.classList.add('invalid');
     
-    // Remove existing error message if any
     const existingError = input.parentElement.querySelector('.error-text');
     if (existingError) {
         existingError.remove();
     }
     
-    // Add new error message
     const errorSpan = document.createElement('small');
     errorSpan.className = 'error-text';
     errorSpan.textContent = message;
@@ -240,7 +233,6 @@ document.getElementById('intakeForm').addEventListener('submit', function(e) {
     
     let isValid = true;
     
-    // Collect form data
     formData = {
         fullName: document.getElementById('fullName').value.trim(),
         contactNumber: document.getElementById('contactNumber').value.trim(),
@@ -251,7 +243,6 @@ document.getElementById('intakeForm').addEventListener('submit', function(e) {
         guardianContactNumber: document.getElementById('guardianContactNumber').value.trim()
     };
     
-    // Validate Contact Number
     if (!isValidPhoneNumber(formData.contactNumber)) {
         showError('contactNumber', '⚠️ Invalid phone number. Use: 09XX-XXX-XXXX');
         isValid = false;
@@ -259,7 +250,6 @@ document.getElementById('intakeForm').addEventListener('submit', function(e) {
         clearError('contactNumber');
     }
     
-    // Validate Guardian Contact Number
     if (!isValidPhoneNumber(formData.guardianContactNumber)) {
         showError('guardianContactNumber', '⚠️ Invalid phone number. Use: 09XX-XXX-XXXX');
         isValid = false;
@@ -267,7 +257,6 @@ document.getElementById('intakeForm').addEventListener('submit', function(e) {
         clearError('guardianContactNumber');
     }
     
-    // Validate Email
     if (!isValidEmail(formData.email)) {
         showError('email', '⚠️ Please enter a valid email address');
         isValid = false;
@@ -275,7 +264,6 @@ document.getElementById('intakeForm').addEventListener('submit', function(e) {
         clearError('email');
     }
     
-    // Check if all fields are filled
     const allFilled = Object.values(formData).every(val => val !== '');
     
     if (!allFilled) {
@@ -283,13 +271,12 @@ document.getElementById('intakeForm').addEventListener('submit', function(e) {
         isValid = false;
     }
     
-    // If all valid, proceed to quiz
     if (isValid) {
         goToPage('quizPage');
     }
 });
 
-// Real-time validation on input
+// Real-time validation
 document.getElementById('contactNumber').addEventListener('blur', function() {
     const value = this.value.trim();
     if (value && !isValidPhoneNumber(value)) {
@@ -378,10 +365,11 @@ function calculateResult() {
 // GOOGLE SHEETS SUBMISSION
 // ============================================
 async function submitToGoogleSheets(finalPath) {
+    // IMPORTANT: Replace with your Google Apps Script Web App URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRNSAO7jLfUN1uJosh_oLQYj_FGU8ACRcn2oU7KiVevqUsJPNSqa3ZcnP2Ewtto2f8ew/exec';
     
     const data = {
-        timestamp: new Date().toISOString().split('T')[0],  // ✅ DATE ONLY
+        timestamp: new Date().toISOString().split('T')[0],
         fullName: formData.fullName,
         contactNumber: formData.contactNumber,
         email: formData.email,
@@ -408,33 +396,55 @@ async function submitToGoogleSheets(finalPath) {
 }
 
 // ============================================
-// TRENDS PAGE
+// TRENDS PAGE - FETCH REAL DATA FROM GOOGLE SHEETS
 // ============================================
-function loadTrends() {
-    const mockTrends = {
-        'Crime Scene Investigation': 38,
-        'Law Enforcement': 28,
-        'Emergency Response': 15,
-        'Digital Forensics': 19
-    };
+async function loadTrends() {
+    // IMPORTANT: Use the SAME Google Apps Script URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRNSAO7jLfUN1uJosh_oLQYj_FGU8ACRcn2oU7KiVevqUsJPNSqa3ZcnP2Ewtto2f8ew/exec';
     
     const trendsContent = document.getElementById('trendsContent');
-    trendsContent.innerHTML = '';
+    trendsContent.innerHTML = '<p style="text-align: center; color: #ffc107; padding: 20px;">📊 Loading data...</p>';
     
-    Object.entries(mockTrends).forEach(([path, percent]) => {
-        const trendBar = document.createElement('div');
-        trendBar.className = 'trend-bar';
-        trendBar.innerHTML = `
-            <div class="trend-label">
-                <span class="icon">📊</span> ${path.toUpperCase()}
-            </div>
-            <div class="bar-container">
-                <div class="bar-fill" style="width: ${percent}%"></div>
-                <span class="percent">${percent}%</span>
-            </div>
-        `;
-        trendsContent.appendChild(trendBar);
-    });
+    try {
+        const response = await fetch(SCRIPT_URL);
+        const pathData = await response.json();
+        
+        trendsContent.innerHTML = '';
+        
+        // Check if there's an error
+        if (pathData.error) {
+            throw new Error(pathData.error);
+        }
+        
+        // Sort by percentage (highest first)
+        const sortedPaths = Object.entries(pathData).sort((a, b) => b[1] - a[1]);
+        
+        // If no data yet
+        if (sortedPaths.length === 0) {
+            trendsContent.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No data yet. Complete the quiz to see results!</p>';
+            return;
+        }
+        
+        // Display each path with its percentage
+        sortedPaths.forEach(([path, percent]) => {
+            const trendBar = document.createElement('div');
+            trendBar.className = 'trend-bar';
+            trendBar.innerHTML = `
+                <div class="trend-label">
+                    <span class="icon">📊</span> ${path.toUpperCase()}
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill" style="width: ${percent}%"></div>
+                    <span class="percent">${percent}%</span>
+                </div>
+            `;
+            trendsContent.appendChild(trendBar);
+        });
+        
+    } catch (error) {
+        console.error('Error loading trends:', error);
+        trendsContent.innerHTML = '<p style="text-align: center; color: #f44336; padding: 20px;">⚠️ Failed to load data. Please try again later.</p>';
+    }
 }
 
 document.querySelector('[onclick="goToPage(\'trendsPage\')"]').addEventListener('click', loadTrends);
@@ -449,8 +459,6 @@ function restartGame() {
     finalResult = null;
     
     document.getElementById('intakeForm').reset();
-    
-    // Clear all error messages
     ['contactNumber', 'guardianContactNumber', 'email'].forEach(clearError);
     
     goToPage('landingPage');
